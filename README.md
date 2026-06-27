@@ -1,5 +1,7 @@
 # 🎯 Sistema de Recomendação de Machine Learning
 
+https://benjaminreiis.github.io/recommender-system-ml/
+
 Sistema de recomendação completo em Python, implementando três abordagens clássicas —
 filtragem colaborativa, filtragem baseada em conteúdo e um modelo híbrido —
 com pipeline de treino, avaliação e métricas de ranking, do zero, sem depender de
