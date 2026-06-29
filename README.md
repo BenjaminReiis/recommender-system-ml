@@ -1,96 +1,130 @@
+<div align="center">
+
 # 🎯 Sistema de Recomendação de Machine Learning
+### Filtragem Colaborativa · Baseada em Conteúdo · Híbrida — implementadas do zero
 
-https://benjaminreiis.github.io/recommender-system-ml/
+[![Python](https://img.shields.io/badge/Python-3.9+-3776AB?style=flat&logo=python&logoColor=white)](https://www.python.org/)
+[![NumPy](https://img.shields.io/badge/NumPy-Core-013243?style=flat&logo=numpy&logoColor=white)](https://numpy.org/)
+[![pandas](https://img.shields.io/badge/pandas-Data-150458?style=flat&logo=pandas&logoColor=white)](https://pandas.pydata.org/)
+[![scikit-learn](https://img.shields.io/badge/scikit--learn-TF--IDF-F7931E?style=flat&logo=scikitlearn&logoColor=white)](https://scikit-learn.org/)
+[![Jupyter](https://img.shields.io/badge/Jupyter-Notebook-F37626?style=flat&logo=jupyter&logoColor=white)](https://jupyter.org/)
+[![pytest](https://img.shields.io/badge/pytest-Testing-0A9EDC?style=flat&logo=pytest&logoColor=white)](https://pytest.org/)
+[![License](https://img.shields.io/badge/License-Educational-yellow.svg)](#-licença)
 
-Sistema de recomendação completo em Python, implementando três abordagens clássicas —
-filtragem colaborativa, filtragem baseada em conteúdo e um modelo híbrido —
-com pipeline de treino, avaliação e métricas de ranking, do zero, sem depender de
-bibliotecas de recomendação prontas (apenas NumPy, pandas e scikit-learn).
+**Sistema de recomendação completo em Python, implementando três abordagens clássicas — filtragem colaborativa, baseada em conteúdo e híbrida — com pipeline de treino, avaliação e métricas de ranking, construído do zero apenas com NumPy, pandas e scikit-learn.**
 
+[Visão Geral](#-visão-geral) •
+[Arquitetura](#-arquitetura) •
+[Instalação](#%EF%B8%8F-instalação) •
+[Como Usar](#-como-usar) •
+[Algoritmos](#-algoritmos-implementados) •
+[Métricas](#-métricas-de-avaliação) •
+[Resultados](#-resultados-de-exemplo)
 
-## 📋 Sumário
+</div>
 
-Visão geral
-Arquitetura
-Estrutura do projeto
-Instalação
-Como usar
-Algoritmos implementados
-Métricas de avaliação
-Resultados de exemplo
-Testes
-Possíveis extensões
-Referências
+---
 
+## 🌐 Demonstração
 
-## 🔍 Visão geral
+🔗 **[benjaminreiis.github.io/recommender-system-ml](https://benjaminreiis.github.io/recommender-system-ml/)**
 
-O projeto resolve o problema clássico de recomendação top-N: dado o histórico de
-avaliações de usuários sobre itens (como em um catálogo de filmes, produtos ou músicas),
-prever quais itens ainda não vistos um usuário provavelmente vai gostar.
+---
+
+## 🔍 Visão Geral
+
+O projeto resolve o problema clássico de recomendação **top-N**: dado o histórico de avaliações de usuários sobre itens (como em um catálogo de filmes, produtos ou músicas), prever quais itens ainda não vistos um usuário provavelmente vai gostar.
 
 Três estratégias são implementadas e podem ser comparadas diretamente:
 
-AbordagemIdeia centralPontos fortesLimitaçõesColaborativa (Matrix Factorization)Aprende fatores latentes de usuários e itens a partir das avaliaçõesCaptura padrões complexos de gostoSofre com cold start (usuários/itens novos)Baseada em conteúdo (TF-IDF + similaridade)Recomenda itens com metadados parecidos aos que o usuário já gostouFunciona bem para itens novosTende a recomendar itens muito parecidos (baixa serendipidade)HíbridaCombina as duas pontuações por média ponderada (alpha)Mitiga as limitações de cada abordagem isoladaRequer ajuste do peso alpha
+| Abordagem | Ideia central | Pontos fortes | Limitações |
+|---|---|---|---|
+| **Colaborativa** (Matrix Factorization) | Aprende fatores latentes de usuários e itens a partir das avaliações | Captura padrões complexos de gosto | Sofre com *cold start* (usuários/itens novos) |
+| **Baseada em conteúdo** (TF-IDF + similaridade) | Recomenda itens com metadados parecidos aos que o usuário já gostou | Funciona bem para itens novos | Tende a recomendar itens muito parecidos (baixa serendipidade) |
+| **Híbrida** | Combina as duas pontuações por média ponderada (`alpha`) | Mitiga as limitações de cada abordagem isolada | Requer ajuste do peso `alpha` |
 
+---
 
 ## 🏗 Arquitetura
 
-                         ┌─────────────────────┐
-                         │   ratings.csv        │
+```text
+                         ┌──────────────────────┐
+                         │     ratings.csv       │
                          │  (user, item, nota)   │
                          └──────────┬───────────┘
                                     │
                  ┌──────────────────┼──────────────────┐
                  ▼                                      ▼
-   ┌───────────────────────────┐         ┌───────────────────────────┐
-   │  MatrixFactorizationRec.  │         │   ContentBasedRecommender  │
-   │  (filtragem colaborativa) │         │   (TF-IDF + cosseno)       │
-   │                            │         │                            │
-   │  rating_hat = μ + bu + bi  │         │  similaridade(item_i,item_j)│
-   │              + pu · qi     │         │   a partir de categoria/tags│
-   └─────────────┬──────────────┘         └─────────────┬──────────────┘
+   ┌────────────────────────────┐         ┌────────────────────────────┐
+   │  MatrixFactorizationRec.   │         │   ContentBasedRecommender   │
+   │  (filtragem colaborativa)  │         │   (TF-IDF + cosseno)        │
+   │                             │         │                             │
+   │  rating_hat = μ + bu + bi   │         │  similaridade(item_i,item_j)│
+   │              + pu · qi      │         │   a partir de categoria/tags│
+   └─────────────┬───────────────┘         └─────────────┬───────────────┘
                  │                                        │
                  └───────────────────┬────────────────────┘
                                       ▼
-                         ┌─────────────────────────┐
-                         │     HybridRecommender    │
-                         │ score = α·CF + (1-α)·CB  │
-                         └────────────┬─────────────┘
+                         ┌──────────────────────────┐
+                         │     HybridRecommender      │
+                         │  score = α·CF + (1-α)·CB   │
+                         └────────────┬───────────────┘
                                       ▼
-                         ┌─────────────────────────┐
-                         │   Top-N recomendações     │
-                         └─────────────────────────┘
+                         ┌──────────────────────────┐
+                         │    Top-N recomendações     │
+                         └──────────────────────────┘
+```
 
+```mermaid
+flowchart TD
+    A[(ratings.csv)] --> B[MatrixFactorizationRecommender]
+    A --> C[ContentBasedRecommender]
+    D[(items.csv)] --> C
+    B --> E[HybridRecommender]
+    C --> E
+    E --> F[Top-N recomendações]
+```
 
-## 📁 Estrutura do projeto
+---
 
+## 📁 Estrutura do Projeto
+
+```text
 recsys/
+│
 ├── data/
 │   ├── ratings.csv              # Avaliações (user_id, item_id, rating, timestamp)
 │   └── items.csv                # Metadados dos itens (categoria, tags, ano)
+│
 ├── src/
 │   ├── data_generator.py        # Geração de dataset sintético estilo MovieLens
 │   ├── collaborative_filtering.py  # Matrix Factorization (SGD)
-│   ├── content_based.py         # TF-IDF + similaridade de cosseno
-│   ├── hybrid.py                 # Combinação ponderada CF + CB
-│   ├── metrics.py                # Precision@K, Recall@K, NDCG@K, Coverage
-│   └── main.py                   # Pipeline end-to-end (treino + avaliação)
+│   ├── content_based.py          # TF-IDF + similaridade de cosseno
+│   ├── hybrid.py                  # Combinação ponderada CF + CB
+│   ├── metrics.py                 # Precision@K, Recall@K, NDCG@K, Coverage
+│   └── main.py                    # Pipeline end-to-end (treino + avaliação)
+│
 ├── notebooks/
-│   └── exploracao.ipynb          # Notebook interativo de demonstração
+│   └── exploracao.ipynb           # Notebook interativo de demonstração
+│
 ├── models/
-│   └── training_curve.png        # Gráfico de convergência do treino
+│   └── training_curve.png         # Gráfico de convergência do treino
+│
 ├── tests/
-│   └── test_recommenders.py      # Testes unitários (pytest)
+│   └── test_recommenders.py       # Testes unitários (pytest)
+│
 ├── requirements.txt
 └── README.md
+```
 
+---
 
-⚙️ Instalação
+## ⚙️ Instalação
 
-Requer Python 3.9+.
+> Requer **Python 3.9+**.
 
-bash# Clone ou copie o projeto, depois entre na pasta
+```bash
+# Clone ou copie o projeto, depois entre na pasta
 cd recsys
 
 # (Recomendado) crie um ambiente virtual
@@ -99,26 +133,29 @@ source venv/bin/activate    # Windows: venv\Scripts\activate
 
 # Instale as dependências
 pip install -r requirements.txt
+```
 
+---
 
-🚀 Como usar
+## 🚀 Como Usar
 
-Pipeline completo (treino + avaliação)
+### Pipeline completo (treino + avaliação)
 
-bashpython src/main.py
+```bash
+python src/main.py
+```
 
 Isso vai:
 
+1. Gerar (ou carregar, se já existir) os dados sintéticos em `data/`
+2. Treinar o modelo colaborativo e reportar `RMSE`, `MAE`, `Precision@10`, `Recall@10`, `NDCG@10`
+3. Treinar o modelo baseado em conteúdo e mostrar itens similares de exemplo
+4. Combinar os dois em um modelo híbrido e gerar recomendações de exemplo
 
-Gerar (ou carregar, se já existir) os dados sintéticos em data/
-Treinar o modelo colaborativo e reportar RMSE, MAE, Precision@10, Recall@10, NDCG@10
-Treinar o modelo baseado em conteúdo e mostrar itens similares de exemplo
-Combinar os dois em um modelo híbrido e gerar recomendações de exemplo
+### Uso programático
 
-
-Uso programático
-
-pythonimport sys
+```python
+import sys
 sys.path.insert(0, "src")
 
 import pandas as pd
@@ -146,114 +183,123 @@ print(cb_model.similar_items(item_id=10, n=5))
 hybrid = HybridRecommender(cf_model, cb_model, alpha=0.7)
 user_history = ratings[ratings["user_id"] == 42]
 print(hybrid.recommend(user_id=42, user_ratings=user_history, n=10))
+```
 
-Notebook interativo
+### Notebook interativo
 
-bashjupyter notebook notebooks/exploracao.ipynb
+```bash
+jupyter notebook notebooks/exploracao.ipynb
+```
 
+---
 
-🧠 Algoritmos implementados
+## 🧠 Algoritmos Implementados
 
-1. Filtragem Colaborativa — Matrix Factorization (Funk SVD)
+### 1️⃣ Filtragem Colaborativa — Matrix Factorization (Funk SVD)
 
-Cada usuário u e item i são representados por vetores latentes p_u e q_i.
-A nota prevista é:
+Cada usuário `u` e item `i` são representados por vetores latentes `p_u` e `q_i`. A nota prevista é:
 
+```
 rating_hat(u, i) = μ + b_u + b_i + p_u · q_i
+```
 
-onde μ é a média global, b_u/b_i são os "viéses" (bias) de usuário e item, e
-p_u · q_i é o produto interno dos fatores latentes. O treino usa gradiente
-descendente estocástico (SGD), atualizando os parâmetros avaliação por avaliação,
-com regularização L2 para evitar overfitting — a mesma ideia popularizada durante o
-Netflix Prize.
+Onde `μ` é a média global, `b_u`/`b_i` são os "viéses" (bias) de usuário e item, e `p_u · q_i` é o produto interno dos fatores latentes. O treino usa **gradiente descendente estocástico (SGD)**, atualizando os parâmetros avaliação por avaliação, com regularização L2 para evitar overfitting — a mesma ideia popularizada durante o **Netflix Prize**.
 
-2. Filtragem Baseada em Conteúdo — TF-IDF + Similaridade de Cosseno
+### 2️⃣ Filtragem Baseada em Conteúdo — TF-IDF + Similaridade de Cosseno
 
-Cada item é descrito por seus metadados textuais (categoria + tags). O texto é
-vetorizado com TF-IDF (Term Frequency–Inverse Document Frequency) e a
-similaridade entre itens é calculada por similaridade de cosseno. As
-recomendações para um usuário são geradas a partir da similaridade média com os
-itens que ele avaliou bem.
+Cada item é descrito por seus metadados textuais (categoria + tags). O texto é vetorizado com **TF-IDF** (Term Frequency–Inverse Document Frequency) e a similaridade entre itens é calculada por **similaridade de cosseno**. As recomendações para um usuário são geradas a partir da similaridade média com os itens que ele avaliou bem.
 
-3. Modelo Híbrido
+### 3️⃣ Modelo Híbrido
 
 Combina as pontuações normalizadas (0–1) dos dois modelos por média ponderada:
 
+```
 score_hibrido = α · score_colaborativo + (1 - α) · score_conteúdo
+```
 
-O parâmetro alpha controla o equilíbrio entre os dois mundos e pode ser ajustado
-conforme o caso de uso (por exemplo, alpha mais baixo ajuda usuários ou itens
-novos, com pouco histórico).
+O parâmetro `alpha` controla o equilíbrio entre os dois mundos e pode ser ajustado conforme o caso de uso (por exemplo, `alpha` mais baixo ajuda usuários ou itens novos, com pouco histórico).
 
+---
 
-📊 Métricas de avaliação
+## 📊 Métricas de Avaliação
 
-O projeto avalia tanto a qualidade da previsão de nota quanto a qualidade do
-ranking de recomendações:
+O projeto avalia tanto a qualidade da previsão de nota quanto a qualidade do ranking de recomendações:
 
+| Métrica | O que mede |
+|---|---|
+| **RMSE / MAE** | Erro entre a nota prevista e a nota real (quanto menor, melhor) |
+| **Precision@K** | Entre os top-K recomendados, qual fração é realmente relevante |
+| **Recall@K** | Entre todos os itens relevantes, qual fração aparece no top-K |
+| **NDCG@K** | Como Precision@K, mas penaliza itens relevantes que aparecem mais abaixo na lista (a posição importa) |
+| **Coverage** | Qual fração do catálogo total de itens aparece em pelo menos uma recomendação (mede diversidade/exploração do sistema) |
 
-RMSE / MAE — erro entre a nota prevista e a nota real (quanto menor, melhor)
-Precision@K — entre os top-K recomendados, qual fração é realmente relevante
-Recall@K — entre todos os itens relevantes, qual fração aparece no top-K
-NDCG@K — como Precision@K, mas penaliza itens relevantes que aparecem mais
-abaixo na lista (a posição importa)
-Coverage — qual fração do catálogo total de itens aparece em pelo menos uma
-recomendação (mede diversidade/exploração do sistema)
+---
 
+## 📈 Resultados de Exemplo
 
+Treinado sobre o dataset sintético padrão (**500 usuários, 300 itens, 20.000 avaliações**):
 
-## 📈 Resultados de exemplo
+| Métrica | Valor |
+|---|---|
+| RMSE (teste) | ~1.48 |
+| MAE (teste) | ~1.30 |
+| Precision@10 | ~0.025 |
+| Recall@10 | ~0.073 |
+| NDCG@10 | ~0.046 |
+| Coverage | ~0.77 |
 
-Treinado sobre o dataset sintético padrão (500 usuários, 300 itens, 20.000 avaliações):
+> **Nota:** o dataset sintético injeta ruído gaussiano propositalmente alto para simular a subjetividade humana real, então os números absolutos são modestos por design — o objetivo é didático (mostrar a metodologia correta de treino e avaliação), não maximizar métricas em um benchmark artificial. Com dados reais (ex: MovieLens) e mais ajuste de hiperparâmetros, esses valores melhoram significativamente.
 
-MétricaValorRMSE (teste)~1.48MAE (teste)~1.30Precision@10~0.025Recall@10~0.073NDCG@10~0.046Coverage~0.77
+Curva de convergência do treino (RMSE de treino por época) disponível em `models/training_curve.png`.
 
-
-Nota: o dataset sintético injeta ruído gaussiano propositalmente alto para
-simular a subjetividade humana real, então os números absolutos são modestos
-por design — o objetivo é didático (mostrar a metodologia correta de treino e
-avaliação), não maximizar métricas em um benchmark artificial. Com dados reais
-(ex: MovieLens) e mais ajuste de hiperparâmetros, esses valores melhoram
-significativamente.
-
-
-
-Curva de convergência do treino (RMSE de treino por época):
-
-Mostrar Imagem
-
+---
 
 ## ✅ Testes
 
-O projeto inclui testes unitários cobrindo geração de dados, treino, predição,
-recomendação e métricas:
+O projeto inclui testes unitários cobrindo geração de dados, treino, predição, recomendação e métricas:
 
-bashpytest tests/ -v
+```bash
+pytest tests/ -v
+```
 
+---
 
-## 🔮 Possíveis extensões
+## 🔮 Possíveis Extensões
 
+- [ ] Trocar os dados sintéticos pelo dataset real MovieLens
+- [ ] Implementar filtragem colaborativa via deep learning (ex: Neural Collaborative Filtering, autoencoders)
+- [ ] Adicionar recomendação sequencial (considerando a ordem temporal das interações)
+- [ ] Expor o sistema via API REST (FastAPI/Flask) para servir recomendações em tempo real
+- [ ] Adicionar suporte a feedback implícito (cliques, visualizações) além de notas explícitas
+- [ ] Implementar validação cruzada e busca de hiperparâmetros (grid/random search)
+- [ ] Lidar com *cold start* de forma mais sofisticada (ex: bandits contextuais)
 
- Trocar os dados sintéticos pelo dataset real MovieLens
- Implementar filtragem colaborativa via deep learning (ex: Neural Collaborative Filtering, autoencoders)
- Adicionar recomendação sequencial (considerando a ordem temporal das interações)
- Expor o sistema via API REST (FastAPI/Flask) para servir recomendações em tempo real
- Adicionar suporte a feedback implícito (cliques, visualizações) além de notas explícitas
- Implementar validação cruzada e busca de hiperparâmetros (grid/random search)
- Lidar com cold start de forma mais sofisticada (ex: bandits contextuais)
-
-
+---
 
 ## 📚 Referências
 
+- Koren, Y., Bell, R., & Volinsky, C. (2009). *Matrix Factorization Techniques for Recommender Systems*. IEEE Computer.
+- Ricci, F., Rokach, L., & Shapira, B. (2015). *Recommender Systems Handbook*. Springer.
+- [GroupLens — MovieLens Datasets](https://grouplens.org/datasets/movielens/)
 
-Koren, Y., Bell, R., & Volinsky, C. (2009). Matrix Factorization Techniques for Recommender Systems. IEEE Computer.
-Ricci, F., Rokach, L., & Shapira, B. (2015). Recommender Systems Handbook. Springer.
-GroupLens — MovieLens Datasets
+---
 
+## 👨‍💻 Autor
 
+**Benjamin Reis**
+
+[![GitHub](https://img.shields.io/badge/GitHub-benjaminreiis-181717?style=flat&logo=github&logoColor=white)](https://github.com/benjaminreiis)
+
+---
 
 ## 📝 Licença
 
-Projeto disponível para fins educacionais e de portfólio. Sinta-se livre para usar,
-modificar e adaptar.
+Projeto disponível para fins educacionais e de portfólio. Sinta-se livre para usar, modificar e adaptar.
+
+---
+
+<div align="center">
+
+⭐ Se este projeto foi útil, considere deixar uma estrela no repositório!
+
+</div>
